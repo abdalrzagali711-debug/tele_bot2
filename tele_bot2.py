@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 from rembg import remove
 from PIL import Image
 
-TOKEN = os.getenv("8569566589:AAHBys5LWeZsj-4oXn5sxpWpNXqPYDIJtDA")
+TOKEN = os.getenv("8516027704:AAF3ymGkX_X0YIjIDDrRT_fc6kEK-anw0iE")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -45,4 +45,5 @@ def main():
     app.run_polling()
 
 if __name__ == "__main__":
+
     main()
