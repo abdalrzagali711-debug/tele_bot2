@@ -1,49 +1,39 @@
 import os
-import io
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 from rembg import remove
-from PIL import Image
+from io import BytesIO
 
-TOKEN = os.getenv("8516027704:AAF3ymGkX_X0YIjIDDrRT_fc6kEK-anw0iE")
+# قراءة التوكن من متغير البيئة
+TOKEN = os.getenv("TOKEN")
 
+# إنشاء التطبيق
+app = ApplicationBuilder().token(TOKEN).build()
+
+# أمر /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "مرحباً 👋\nأرسل صورة وسأعيدها لك بدون خلفية 😊"
+        "البوت شغال 👌\nأرسل أي صورة ليتم إزالة الخلفية."
     )
 
+# معالجة الصور
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        await update.message.reply_text("⏳ جاري معالجة الصورة…")
-
         photo_file = await update.message.photo[-1].get_file()
-        img_bytes = await photo_file.download_as_bytearray()
+        photo_bytes = BytesIO()
+        await photo_file.download(out=photo_bytes)
+        photo_bytes.seek(0)
 
-        input_image = Image.open(io.BytesIO(img_bytes))
-        output_image = remove(input_image)
-
-        output_bytes = io.BytesIO()
-        output_image.save(output_bytes, format="PNG")
-        output_bytes.seek(0)
-
-        await update.message.reply_document(
-            document=output_bytes,
-            filename="no_bg.png",
-            caption="تمت إزالة الخلفية ✅"
-        )
-
+        # إزالة الخلفية
+        output_bytes = remove(photo_bytes.read())
+        await update.message.reply_photo(photo=BytesIO(output_bytes))
     except Exception as e:
         await update.message.reply_text(f"حدث خطأ: {e}")
 
-def main():
-    app = ApplicationBuilder().token(TOKEN).build()
+# إضافة المعالجات
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-
-    print("البوت يعمل...")
-    app.run_polling()
-
-if __name__ == "__main__":
-
-    main()
+# تشغيل البوت
+print("تشغيل البوت…")
+app.run_polling()
